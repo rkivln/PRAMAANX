@@ -1,0 +1,13 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+paddleocr==2.7.0.3
+paddlepaddle==2.5.2
+opencv-python==4.8.1.78
+numpy==1.26.2
+pillow==10.1.0
+rapidfuzz==3.6.1
+mrz==1.1.0
+scikit-image==0.22.0
+exifread==3.0.0
+onnxruntime==1.16.3
+insightface==0.7.3

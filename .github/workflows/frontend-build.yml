@@ -1,0 +1,36 @@
+name: Frontend Build
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build desktop app
+        run: |
+          cd apps/desktop
+          npm install
+          npm run build
+
+      - name: Type check AI service
+        run: |
+          cd services/ai-service
+          npm install
+          npx tsc --noEmit

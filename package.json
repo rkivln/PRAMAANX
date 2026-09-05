@@ -1,0 +1,23 @@
+{
+  "name": "pramaanx",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PRAMAANX - Identity & Document Verification System",
+  "workspaces": [
+    "services/ai-service",
+    "apps/desktop"
+  ],
+  "scripts": {
+    "dev:api": "cd services/api && uvicorn app.main:app --reload --port 5000",
+    "dev:ai": "cd services/ai-service && npm run dev",
+    "dev:desktop": "cd apps/desktop && npm run dev",
+    "install:all": "npm install && cd services/api && pip install -r requirements.txt && cd ../ai-service && npm install",
+    "test:api": "cd services/api && pytest",
+    "test:ai": "cd services/ai-service && npm test",
+    "seed": "cd services/api && python -m app.utils.seed",
+    "migrate": "cd services/api && python -m app.utils.migrate"
+  },
+  "keywords": ["verification", "document", "biometric", "government"],
+  "author": "PRAMAANX Engineering Team",
+  "license": "MIT"
+}

@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - AI_SERVICE_URL=http://ai-service:3001
+      - FRONTEND_ORIGIN=http://localhost:5173
+      - WORKSTATION_ID=WS-CHK-01
+    volumes:
+      - ./services/api:/app
+    depends_on:
+      - ai-service
+
+  ai-service:
+    build:
+      context: ./services/ai-service
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - FRONTEND_ORIGIN=http://localhost:5173
+      - PORT=3001
+
+  local-engine:
+    build:
+      context: ./local-engine
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5000"
+    environment:
+      - WORKSTATION_ID=WS-CHK-01

@@ -1,0 +1,59 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: supabase/postgres:15.1.0.95
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          cd services/api
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run linter
+        run: |
+          cd services/api
+          pip install flake8
+          flake8 app --max-line-length=120 --exclude=__pycache__
+
+      - name: Run tests
+        run: |
+          cd services/api
+          pytest tests/ -v --tb=short
+        env:
+          SUPABASE_URL: http://localhost:5432
+          SUPABASE_ANON_KEY: test-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: test-service-role-key
+          JWT_SECRET: test-jwt-secret
+          API_HOST: 127.0.0.1
+          API_PORT: 5000
+          AI_SERVICE_URL: http://localhost:3001
+          FRONTEND_ORIGIN: http://localhost:5173
+          WORKSTATION_ID: WS-TEST-01
