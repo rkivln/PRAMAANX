@@ -47,10 +47,10 @@ const PRAMAANX_API = (() => {
     setOfficer,
     isLoggedIn: () => !!token,
 
-    async login(officerId, password, checkpointCode, role) {
+    async login(email, password) {
       const data = await request('/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ officer_id: officerId, password, checkpoint_code: checkpointCode, role }),
+        body: JSON.stringify({ email, password }),
       });
       setToken(data.access_token);
       setOfficer(data.user);

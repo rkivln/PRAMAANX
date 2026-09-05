@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from supabase import Client
-from ...dependencies import get_supabase, get_current_officer, get_supervisor_officer
-from ...services.audit_service import AuditService
+from ..dependencies import get_supabase, get_current_officer, get_supervisor_officer
+from ..services.audit_service import AuditService
 
 router = APIRouter()
 
@@ -22,8 +22,12 @@ async def list_pending_reviews(
 
     items = []
     for row in (result.data or []):
-        doc = row.get("document_captures")
-        doc_type = doc[0]["document_type"] if doc and len(doc) > 0 else "Unknown"
+        officers = row.get("officers")
+        officer_name = officers[0]["full_name"] if officers and len(officers) > 0 else "Unknown"
+
+        doc_captures = row.get("document_captures")
+        doc_type = doc_captures[0]["document_type"] if doc_captures and len(doc_captures) > 0 else "Unknown"
+
         risk = row.get("risk_assessments")
         risk_level = risk[0]["risk_level"] if risk and len(risk) > 0 else "MEDIUM"
         reasons = risk[0]["reasons"] if risk and len(risk) > 0 else []
@@ -35,7 +39,7 @@ async def list_pending_reviews(
             "document_type": doc_type,
             "triggered_rule": triggered,
             "risk_level": risk_level,
-            "officer": row.get("officers", {}).get("full_name") if row.get("officers") else "Unknown",
+            "officer": officer_name,
         })
 
     return {"success": True, "data": items}
@@ -59,8 +63,8 @@ async def review_case(
         "reason": payload.reason,
     }).execute()
 
-    audit_service = AuditService(supabase)
-    await audit_service.log(
+    audit = AuditService(supabase)
+    await audit.log(
         session_id=session["id"],
         officer_id=officer["id"],
         event_code="REVIEW_FLAGGED",

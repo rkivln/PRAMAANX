@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 from supabase import create_client, Client
-from ..config import settings
+from .config import settings
 
 security = HTTPBearer()
 

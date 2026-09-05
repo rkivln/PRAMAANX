@@ -1,0 +1,31 @@
+:root {
+  --navy-dark: #0B2942;
+  --navy: #123B63;
+  --navy-mid: #1E5A8A;
+  --navy-light: #2E6FA0;
+  --saffron: #FF9933;
+  --green: #138808;
+  --green-pale: #E6F4E6;
+  --white: #FFFFFF;
+  --bg-page: #F3F5F7;
+  --bg-section: #F8F9FA;
+  --border: #D6DCE2;
+  --border-light: #E8ECF0;
+  --text-primary: #17212B;
+  --text-sec: #5B6773;
+  --text-muted: #7A858F;
+  --review: #C47A00;
+  --review-pale: #FFF3D6;
+  --rejected: #B42318;
+  --rejected-pale: #FDECEA;
+  --font: 'IBM Plex Sans', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', 'Courier New', monospace;
+}
+
+body {
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg-page);
+}

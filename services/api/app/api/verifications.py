@@ -1,19 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 from supabase import Client
-from uuid import UUID
-from ...config import settings
-from ...dependencies import get_supabase, get_supabase_admin, get_current_officer, get_supervisor_officer
-from ...services.verification_service import VerificationService
-from ...services.risk_service import RiskService
-from ...services.audit_service import AuditService
+from ..config import settings
+from ..dependencies import get_supabase, get_supabase_admin, get_current_officer, get_supervisor_officer
+from ..services.verification_service import VerificationService
+from ..services.risk_service import RiskEngine
+from ..services.audit_service import AuditService
 
 router = APIRouter()
 
 class CreateVerificationRequest(BaseModel):
     checkpoint_id: str
+    demo_mode: bool = False
 
 class DocumentCaptureRequest(BaseModel):
     document_type: Optional[str] = None
@@ -39,8 +39,12 @@ class BiometricResultRequest(BaseModel):
     model_version: str
 
 class DecisionRequest(BaseModel):
-    action: str  # APPROVE, REVIEW, REJECT
+    action: str
     reason: Optional[str] = None
+    confirmation: bool = False
+
+class EvidenceRequest(BaseModel):
+    evidence: Dict[str, Any]
 
 @router.post("/", response_model=dict)
 async def create_verification(
@@ -49,7 +53,7 @@ async def create_verification(
     supabase: Client = Depends(get_supabase),
 ):
     verification_service = VerificationService(supabase)
-    return await verification_service.create_session(officer, payload.checkpoint_id)
+    return await verification_service.create_session(officer, payload.checkpoint_id, payload.demo_mode)
 
 @router.get("/{verification_id}", response_model=dict)
 async def get_verification(
@@ -112,17 +116,96 @@ async def analyze_biometric(
         raise HTTPException(status_code=404, detail="Verification not found")
     return {"success": True, "data": result}
 
-@router.post("/{verification_id}/risk", response_model=dict)
-async def calculate_risk(
+@router.post("/{verification_id}/forensics/analyze", response_model=dict)
+async def analyze_forensics(
     verification_id: str,
     officer: dict = Depends(get_current_officer),
     supabase: Client = Depends(get_supabase),
 ):
-    risk_service = RiskService(supabase)
-    result = await risk_service.calculate(verification_id, officer)
-    if not result:
-        raise HTTPException(status_code=404, detail="Verification not found")
+    verification_service = VerificationService(supabase)
+    result = await verification_service.run_forensics(verification_id, officer)
     return {"success": True, "data": result}
+
+@router.post("/{verification_id}/consistency", response_model=dict)
+async def run_consistency(
+    verification_id: str,
+    payload: EvidenceRequest,
+    officer: dict = Depends(get_current_officer),
+    supabase: Client = Depends(get_supabase),
+):
+    verification_service = VerificationService(supabase)
+    result = await verification_service.run_consistency(verification_id, officer, payload.evidence)
+    return {"success": True, "data": result}
+
+@router.get("/{verification_id}/consistency", response_model=dict)
+async def get_consistency(
+    verification_id: str,
+    officer: dict = Depends(get_current_officer),
+    supabase: Client = Depends(get_supabase),
+):
+    verification_service = VerificationService(supabase)
+    session = await verification_service.get_session(verification_id, officer)
+    if not session:
+        raise HTTPException(status_code=404, detail="Verification not found")
+
+    checks = supabase.table("cross_stream_checks").select("*").eq("verification_session_id", session["id"]).execute()
+    checks_data = checks.data or []
+    mismatch_count = sum(1 for c in checks_data if c.get("status") == "MISMATCH")
+    uncertain_count = sum(1 for c in checks_data if c.get("status") == "UNCERTAIN")
+    critical_count = sum(1 for c in checks_data if c.get("severity") == "CRITICAL")
+
+    return {
+        "success": True,
+        "data": {
+            "checks": checks_data,
+            "mismatch_count": mismatch_count,
+            "uncertain_count": uncertain_count,
+            "critical_count": critical_count,
+        }
+    }
+
+@router.post("/{verification_id}/risk", response_model=dict)
+async def calculate_risk(
+    verification_id: str,
+    payload: EvidenceRequest,
+    officer: dict = Depends(get_current_officer),
+    supabase: Client = Depends(get_supabase),
+):
+    verification_service = VerificationService(supabase)
+    result = await verification_service.run_risk(verification_id, officer, payload.evidence)
+    return {"success": True, "data": result}
+
+@router.get("/{verification_id}/risk", response_model=dict)
+async def get_risk(
+    verification_id: str,
+    officer: dict = Depends(get_current_officer),
+    supabase: Client = Depends(get_supabase),
+):
+    verification_service = VerificationService(supabase)
+    session = await verification_service.get_session(verification_id, officer)
+    if not session:
+        raise HTTPException(status_code=404, detail="Verification not found")
+
+    risk = supabase.table("risk_assessments").select("*").eq("verification_session_id", session["id"]).order("created_at", desc=True).limit(1).execute()
+    risk_data = risk.data[0] if risk.data else {}
+
+    tripwires = supabase.table("hard_tripwires").select("*").eq("verification_session_id", session["id"]).execute()
+    tripwire_triggered = len(tripwires.data or []) > 0
+
+    return {
+        "success": True,
+        "data": {
+            "risk_score": float(risk_data.get("risk_score", 0.0)) if risk_data else 0.0,
+            "risk_level": risk_data.get("risk_level", "LOW"),
+            "confidence": float(risk_data.get("confidence", 0.0)) if risk_data else 0.0,
+            "tripwire_triggered": tripwire_triggered,
+            "recommended_action": risk_data.get("decision_recommendation", "AUTO_CLEAR_CANDIDATE"),
+            "requires_officer_confirmation": risk_data.get("risk_level") in ("HIGH", "CRITICAL") or tripwire_triggered,
+            "reasons": risk_data.get("reasons", []) if risk_data else [],
+            "triggered_rules": [],
+            "rules_version": risk_data.get("rules_version", ""),
+        }
+    }
 
 @router.get("/{verification_id}/result", response_model=dict)
 async def get_result(
@@ -136,6 +219,18 @@ async def get_result(
         raise HTTPException(status_code=404, detail="Verification not found")
     return {"success": True, "data": result}
 
+@router.get("/{verification_id}/report", response_model=dict)
+async def get_report(
+    verification_id: str,
+    officer: dict = Depends(get_current_officer),
+    supabase: Client = Depends(get_supabase),
+):
+    verification_service = VerificationService(supabase)
+    result = await verification_service.get_report(verification_id, officer)
+    if not result:
+        raise HTTPException(status_code=404, detail="Verification not found")
+    return {"success": True, "data": result}
+
 @router.post("/{verification_id}/decision", response_model=dict)
 async def record_decision(
     verification_id: str,
@@ -143,14 +238,14 @@ async def record_decision(
     officer: dict = Depends(get_current_officer),
     supabase: Client = Depends(get_supabase),
 ):
-    if payload.action not in ("APPROVE", "REVIEW", "REJECT"):
+    if payload.action not in ("APPROVE", "REVIEW", "REJECT", "SECONDARY_REVIEW"):
         raise HTTPException(status_code=400, detail="Invalid action")
 
-    decision_map = {"APPROVE": "VERIFIED", "REVIEW": "REVIEW", "REJECT": "REJECTED"}
+    decision_map = {"APPROVE": "VERIFIED", "REVIEW": "REVIEW", "REJECT": "REJECTED", "SECONDARY_REVIEW": "REVIEW"}
     verification_service = VerificationService(supabase)
     audit_service = AuditService(supabase)
     result = await verification_service.record_decision(
-        verification_id, officer, decision_map[payload.action], payload.reason, audit_service
+        verification_id, officer, decision_map[payload.action], payload.reason or "", audit_service, payload.confirmation
     )
     if not result:
         raise HTTPException(status_code=404, detail="Verification not found")

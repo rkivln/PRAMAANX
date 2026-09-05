@@ -1,10 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import time
 import logging
 from .config import settings
+from .dependencies import get_supabase, get_supabase_admin, get_current_officer, get_supervisor_officer, get_admin_officer
 from .api import auth, checkpoints, verifications, history, reviews, audit, admin, system
+from supabase import Client
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +44,20 @@ async def request_middleware(request, call_next):
 @app.get("/api/health")
 def health():
     return {"status": "ok", "service": "pramaanx-api", "version": "1.0.0"}
+
+# Dashboard router
+dashboard_router = APIRouter()
+
+@dashboard_router.get("/", response_model=dict)
+async def get_dashboard(
+    officer: dict = Depends(get_current_officer),
+    supabase: Client = Depends(get_supabase),
+):
+    from .services.dashboard_service import DashboardService
+    service = DashboardService(supabase)
+    return await service.get_dashboard(officer)
+
+app.include_router(dashboard_router, prefix="/api/dashboard", tags=["dashboard"])
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(checkpoints.router, prefix="/api/checkpoints", tags=["checkpoints"])

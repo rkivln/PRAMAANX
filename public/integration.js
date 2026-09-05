@@ -14,13 +14,11 @@ const PRAMAANX_INTEGRATION = (() => {
   let currentOfficer = null;
 
   async function apiLogin() {
-    const id = document.getElementById('li-id').value.trim();
+    const email = document.getElementById('li-email').value.trim();
     const pw = document.getElementById('li-pw').value;
-    const cp = document.getElementById('li-cp').value.trim();
-    const role = document.getElementById('li-role').value;
-    if (!id || !pw || !cp) { alert('Please enter Officer ID, Password, and Checkpoint.'); return; }
+    if (!email || !pw) { alert('Please enter email and password.'); return; }
     try {
-      const data = await API.login(id, pw, cp, role);
+      const data = await API.login(email, pw);
       currentOfficer = data.user;
       S.officer = { name: data.user.name, id: data.user.officer_id, role: data.user.role, roleKey: data.user.role };
       await loadCheckpoints();

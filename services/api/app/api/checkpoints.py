@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from supabase import Client
-from ...dependencies import get_supabase, get_current_officer
+from ..dependencies import get_supabase, get_current_officer
 
 router = APIRouter()
 
@@ -18,7 +18,7 @@ class CheckpointResponse(BaseModel):
     status: str
 
 @router.get("/", response_model=dict)
-async def list_checkpoints(supabase: Client = Depends(get_supabase)):
+async def list_checkpoints(officer: dict = Depends(get_current_officer), supabase: Client = Depends(get_supabase)):
     result = supabase.table("checkpoints").select("*").eq("status", "active").order("checkpoint_code").execute()
     return {
         "success": True,
@@ -26,7 +26,7 @@ async def list_checkpoints(supabase: Client = Depends(get_supabase)):
     }
 
 @router.get("/{checkpoint_code}", response_model=dict)
-async def get_checkpoint(checkpoint_code: str, supabase: Client = Depends(get_supabase)):
+async def get_checkpoint(checkpoint_code: str, officer: dict = Depends(get_current_officer), supabase: Client = Depends(get_supabase)):
     result = supabase.table("checkpoints").select("*").eq("checkpoint_code", checkpoint_code).single().execute()
     if not result.data:
         raise HTTPException(status_code=404, detail="Checkpoint not found")

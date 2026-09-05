@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from typing import Optional
 from supabase import Client
-from ...dependencies import get_supabase, get_admin_officer
+from ..dependencies import get_supabase, get_admin_officer
 
 router = APIRouter()
 
@@ -50,7 +50,7 @@ async def list_all_verifications(
     supabase: Client = Depends(get_supabase),
 ):
     query = supabase.table("verification_sessions").select(
-        "id, verification_id, officer_id, checkpoint_id, status, started_at, completed_at, demo_mode, officers(full_name, officer_id), checkpoints(checkpoint_code, name)"
+        "id, verification_id, officer_id, checkpoint_id, status, started_at, completed_at, demo_mode, officers(full_name, officer_id), checkpoints(checkpoint_code, name), document_captures(document_type), risk_assessments(risk_level)"
     ).order("started_at", desc=True)
 
     if checkpoint:
@@ -66,14 +66,27 @@ async def list_all_verifications(
 
     items = []
     for row in (result.data or []):
+        officers = row.get("officers")
+        officer_name = officers[0]["full_name"] if officers and len(officers) > 0 else None
+
+        checkpoints = row.get("checkpoints")
+        checkpoint_code = checkpoints[0]["checkpoint_code"] if checkpoints and len(checkpoints) > 0 else None
+
+        doc_captures = row.get("document_captures")
+        doc_type = doc_captures[0]["document_type"] if doc_captures and len(doc_captures) > 0 else None
+
+        risk = row.get("risk_assessments")
+        risk_level = risk[0]["risk_level"] if risk and len(risk) > 0 else None
+
         items.append({
             "id": str(row.get("id")),
             "verification_id": row.get("verification_id"),
             "timestamp": row.get("started_at"),
-            "checkpoint": row.get("checkpoints", {}).get("checkpoint_code") if row.get("checkpoints") else None,
-            "officer": row.get("officers", {}).get("full_name") if row.get("officers") else None,
+            "checkpoint": checkpoint_code,
+            "officer": officer_name,
+            "document_type": doc_type,
             "decision": row.get("status"),
-            "risk": None,
+            "risk": risk_level,
         })
 
     return {

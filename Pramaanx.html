@@ -1179,24 +1179,12 @@ tbody tr:hover { background: #F5F7F9; }
       <div class="login-panel-sub">Authorized government personnel only. Credentials are verified against the personnel database.</div>
 
       <div class="form-group">
-        <label class="form-label">Officer ID</label>
-        <input type="text" id="li-id" class="form-control" placeholder="e.g. SSB/VER/2024-0142" value="SSB/VER/2024-0142">
+        <label class="form-label">Email</label>
+        <input type="email" id="li-email" class="form-control" placeholder="e.g. officer@pramaanx.gov.in">
       </div>
       <div class="form-group">
         <label class="form-label">Password</label>
-        <input type="password" id="li-pw" class="form-control" placeholder="Enter password" value="••••••••">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Verification Checkpoint</label>
-        <input type="text" id="li-cp" class="form-control" placeholder="e.g. CHK-JALP-01" value="CHK-JALP-01">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Role</label>
-        <select id="li-role" class="form-control">
-          <option value="officer">Verification Officer</option>
-          <option value="supervisor">Supervisor</option>
-          <option value="admin">Administrator</option>
-        </select>
+        <input type="password" id="li-pw" class="form-control" placeholder="Enter password">
       </div>
 
       <div style="display:flex;gap:8px;margin-top:18px;">
@@ -1783,12 +1771,10 @@ function showScreen(id) {
 // LOGIN
 // ================================================================
 function doLogin() {
-  const id = document.getElementById('li-id').value.trim();
-  const role = document.getElementById('li-role').value;
-  if (!id) { alert('Please enter your Officer ID.'); return; }
-  S.officer.id = id;
-  const roleMap = { officer:'Verification Officer', supervisor:'Supervisor', admin:'Administrator' };
-  S.officer.role = roleMap[role] || 'Verification Officer';
+  const email = document.getElementById('li-email').value.trim();
+  const pw = document.getElementById('li-pw').value;
+  if (!email || !pw) { alert('Please enter email and password.'); return; }
+  S.officer.email = email;
   renderCheckpoints();
   showScreen('scr-checkpoint');
 }

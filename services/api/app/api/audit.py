@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from typing import Optional
 from supabase import Client
-from datetime import datetime
-from ...dependencies import get_supabase, get_current_officer, get_supervisor_officer
+from ..dependencies import get_supabase, get_current_officer, get_supervisor_officer
 
 router = APIRouter()
 
@@ -38,11 +37,12 @@ async def get_audit_trail(
     items = []
     for row in (result_data.data or []):
         vs = row.get("verification_sessions")
+        vid = vs[0]["verification_id"] if vs and len(vs) > 0 else None
         items.append({
             "timestamp": row.get("event_timestamp"),
             "officer_id": str(row.get("officer_id")) if row.get("officer_id") else None,
             "event_code": row.get("event_code"),
-            "verification_id": vs.get("verification_id") if vs else None,
+            "verification_id": vid,
             "action": row.get("action_description"),
             "result": row.get("result"),
             "workstation": str(row.get("workstation_id")) if row.get("workstation_id") else None,

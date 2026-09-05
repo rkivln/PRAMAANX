@@ -1,169 +1,214 @@
 # PRAMAANX
 
-Identity & Document Verification System
-
-## Overview
+**Identity & Document Verification and Border Screening System**
 
 PRAMAANX is a government-facing identity and document verification workstation. It combines local document and biometric processing with a supporting AI analysis layer and a tamper-evident audit trail.
-
-The system is built around a practical monorepo:
-
-- **Frontend**: Electron desktop application with embedded HTML/JS UI
-- **API**: Python FastAPI backend for authentication, session management, and database coordination
-- **AI Service**: Node.js + Express service for Gemini supporting analysis (metadata only)
-- **Local Engine**: Python-based document, biometric, and forensic processing
-- **Database**: Supabase PostgreSQL with Row Level Security
 
 ## Architecture
 
 ```
-Frontend (Electron)
+Field Capture
     ↓
-FastAPI Backend
+Tauri Desktop App
     ↓
-Local Verification Engine
+FastAPI Edge Engine
+    ↓
+Document / Biometric / Forensic / Registry
+    ↓
+Cross-Stream Validator
     ↓
 Risk Engine
     ↓
-Node AI Supporting Service
+Officer Decision
     ↓
-Supabase PostgreSQL
+Audit Hash
     ↓
-Audit Hash Chain
-```
-
-For sensitive biometric processing, data stays local:
-
-```
-Desktop
+Local Cleanup
     ↓
-Local Python Engine
+Optional Controlled Sync
     ↓
-Derived biometric result (scores only)
-    ↓
-FastAPI
-    ↓
-Supabase metadata only
+Supabase
 ```
 
 ## Technology Stack
 
 | Component | Technology |
 |-----------|-----------|
-| Frontend | HTML5, JavaScript, Electron |
-| Backend API | Python, FastAPI |
-| AI Service | Node.js, Express, TypeScript |
+| Desktop | Tauri + React 19 + TypeScript + Vite + Tailwind CSS |
+| Edge API | Python + FastAPI + Uvicorn |
+| Edge Inference | PyTorch + ONNX Runtime + TensorRT |
+| Document | PP-OCRv4 + OpenCV + ICAO 9303 parser |
+| Biometric | SCRFD + AdaFace 512-D + ONNX Runtime |
+| Forensics | ELA + DQT + ORB + SSIM + EXIF |
+| AI Support | Node.js + Express + Gemini |
 | Database | Supabase (PostgreSQL) |
-| Authentication | Supabase Auth (JWT) |
-| Document Processing | PaddleOCR, OpenCV |
-| Biometrics | SCRFD, ArcFace, ONNX Runtime |
-| Forensics | SSIM, ELA, ORB |
+| Audit | SHA-256 chained audit records |
+
+## Key Principles
+
+1. **Edge-first processing**: All biometric processing happens locally on the edge workstation.
+2. **No raw biometric transmission**: Raw face images and embeddings are never sent to external services.
+3. **Human-in-the-loop**: Final screening decisions remain under authorized officer control.
+4. **Tamper-evident audit**: Every important operation creates an append-only audit event with SHA-256 hash chain.
+5. **Offline operation**: The edge engine continues functioning without Internet connectivity.
 
 ## Repository Structure
 
 ```
 pramaanx/
-├── apps/desktop/          # Electron desktop application
+├── apps/
+│   └── desktop/           # Tauri desktop application
+│       ├── src/
+│       │   ├── components/
+│       │   ├── pages/
+│       │   ├── hooks/
+│       │   ├── services/api/
+│       │   ├── store/
+│       │   ├── types/
+│       │   └── utils/
+│       └── src-tauri/
+├── edge/
+│   ├── api/               # FastAPI backend
+│   │   ├── app/
+│   │   │   ├── api/
+│   │   │   ├── services/
+│   │   │   ├── schemas/
+│   │   │   └── state_machine.py
+│   │   └── tests/
+│   └── inference/         # Local inference engines
+│       ├── document/
+│       ├── biometric/
+│       ├── forensic/
+│       ├── registry/
+│       ├── liveness/
+│       └── common/
 ├── services/
-│   ├── api/               # Python FastAPI backend
 │   └── ai-service/        # Node.js Gemini supporting service
-├── local-engine/          # Python document/biometric/forensic modules
 ├── supabase/
-│   └── migrations/        # SQL schema, RLS, seed data
-├── packages/contracts/    # Shared types/schemas
-├── scripts/               # Setup and seed scripts
-├── docs/                  # Architecture, security, API docs
-└── .github/workflows/     # CI/CD
+│   ├── migrations/
+│   └── seed/
+├── packages/
+│   └── contracts/         # Shared TypeScript types
+├── docs/
+├── scripts/
+└── .github/workflows/
 ```
 
-## Environment Setup
+## Installation
 
-1. Copy `.env.example` to `.env`
-2. Fill in Supabase credentials and keys
+### Prerequisites
+
+- Node.js >= 18.0.0
+- Python >= 3.10
+- PostgreSQL (via Supabase)
+- Tauri CLI (for desktop builds)
+
+### Setup
+
+1. Clone the repository
+2. Copy `.env.example` to `.env` and fill in your credentials
+3. Install dependencies:
 
 ```bash
-cp .env.example .env
+# Install root dependencies
+pnpm install
+
+# Install API dependencies
+cd services/api
+pip install -r requirements.txt
+
+# Install AI service dependencies
+cd services/ai-service
+npm install
+
+# Install desktop dependencies
+cd apps/desktop
+npm install
 ```
 
-## Supabase Setup
+### Supabase Setup
 
 1. Create a Supabase project
 2. Apply migrations:
-
 ```bash
+cd supabase
 supabase db reset
 ```
+3. Create officer accounts in Supabase Auth Dashboard
+4. Insert officer profiles matching auth.user IDs
 
-3. Seed development data via SQL Editor or CLI
-
-## Running the Application
-
-### API (FastAPI)
+### Running the Application
 
 ```bash
+# Start Edge API (FastAPI)
 cd services/api
-pip install -r requirements.txt
 uvicorn app.main:app --reload --port 5000
-```
 
-### AI Service (Node.js)
-
-```bash
+# Start AI Service (Node.js)
 cd services/ai-service
-npm install
 npm run dev
-```
 
-### Desktop App (Electron)
-
-```bash
+# Start Desktop App (Tauri)
 cd apps/desktop
-npm install
-npm run electron:dev
+npm run tauri:dev
 ```
 
-## Testing
+## Environment Variables
 
-### Backend Tests
+See `.env.example` for all available configuration options.
 
-```bash
-cd services/api
-pytest tests/ -v
-```
-
-### AI Service Tests
-
-```bash
-cd services/ai-service
-npm test
-```
-
-## API Documentation
-
-- Swagger UI: http://127.0.0.1:5000/docs
-- ReDoc: http://127.0.0.1:5000/redoc
+Key variables:
+- `SUPABASE_URL` - Supabase project URL
+- `SUPABASE_ANON_KEY` - Supabase anon key
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key
+- `GEMINI_API_KEY` - Gemini API key (optional)
+- `RETENTION_MODE` - `ZERO_RETENTION` or `STANDARD`
+- `ENABLE_CLOUD_SYNC` - Enable/disable cloud sync
+- `ENABLE_AI_OPINION` - Enable/disable AI analysis
 
 ## Security
 
-- Supabase Auth for authentication
-- JWT validated on every request
-- Service role key never exposed to frontend
-- Biometric embeddings never stored
-- Raw face images never sent to external services
-- Append-only audit log with SHA-256 hash chain
-- Row Level Security at database level
+- JWT authentication with short session expiry
+- Row Level Security (RLS) at database level
+- SHA-256 chained audit records
+- Biometric data never leaves the edge workstation
+- Zero-retention mode for temporary artifacts
+- Secure local file handling with generated filenames
 
-## Data Handling
+## Audit Integrity
 
-- Document images: session-only by default
-- Face images: session-only, never persisted
-- Biometric embeddings: never stored, never sent to external services
-- AI analysis: document metadata and OCR output only
-- Audit records: immutable, tamper-evident
+Every audit event contains:
+- `event_hash` - SHA-256 hash of the event
+- `previous_hash` - Hash of the previous event
 
-## Demo Mode
+The chain can be verified via:
+```bash
+GET /api/audit/integrity
+```
 
-Demo/Training mode uses seeded synthetic data and does not write to production audit logs. Demo sessions are clearly flagged in the database.
+## Offline Operation
+
+The workstation continues working with:
+- No Internet
+- No Supabase connection
+- No Gemini connection
+
+When cloud services are unavailable:
+- AI opinion: `UNAVAILABLE`
+- Cloud synchronization: `QUEUED`
+- Local screening: `OPERATIONAL`
+
+## Testing
+
+```bash
+# Backend tests
+cd services/api
+pytest tests/ -v
+
+# AI service tests
+cd services/ai-service
+npm test
+```
 
 ## License
 
