@@ -23,6 +23,7 @@ export default {
       fontFamily: {
         sans: ['IBM Plex Sans', 'system-ui', 'sans-serif'],
         mono: ['IBM Plex Mono', 'Courier New', 'monospace'],
+        logo: ['Samarkan', '"Rozha One"', '"Yatra One"', 'serif'],
       },
     },
   },

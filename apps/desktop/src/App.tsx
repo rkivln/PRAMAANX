@@ -79,45 +79,20 @@ export const App: React.FC = () => {
       {/* 1. Government Border Control Header */}
       <header className="bg-[#0B2942] text-white h-14 px-6 flex items-center justify-between flex-shrink-0 border-t-[3px] border-[#FF9933] shadow-md z-30">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded bg-[#123B63] border border-white/20 flex items-center justify-center">
-              <Shield className="w-4 h-4 text-[#FF9933]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-sm tracking-wider">PRAMAANX</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 bg-[#FF9933]/20 text-[#FF9933] rounded font-semibold border border-[#FF9933]/40">
-                  OFFICIAL MVP
-                </span>
-              </div>
-              <div className="text-[9.5px] text-white/60 tracking-wider font-mono">
-                BORDER &amp; IMMIGRATION SCREENING SYSTEM
-              </div>
-            </div>
-          </div>
+          <span 
+            style={{ fontFamily: "'Samarkan', serif" }} 
+            className="text-4xl text-white tracking-wider select-none leading-none pt-0.5"
+          >
+            PRAMAANX
+          </span>
+          <div className="h-6 w-[1px] bg-white/20 hidden sm:block" />
+          <span className="text-xs text-white/80 font-medium tracking-wide hidden sm:inline-block">
+            AI-Based Fake Identity &amp; Document Screening System
+          </span>
         </div>
 
-        {/* Center: Officer & Station Badge */}
-        <div className="hidden md:flex items-center gap-4 text-xs font-mono">
-          <div className="bg-[#123B63] px-3 py-1 rounded border border-white/10 flex items-center gap-2">
-            <span className="text-white/50 text-[10px]">CHECKPOINT:</span>
-            <span className="font-semibold text-white">{DEFAULT_OFFICER.checkpoint_code}</span>
-          </div>
-
-          <div className="bg-[#123B63] px-3 py-1 rounded border border-white/10 flex items-center gap-2">
-            <span className="text-white/50 text-[10px]">OFFICER:</span>
-            <span className="font-semibold text-white">{DEFAULT_OFFICER.name}</span>
-            <span className="text-[10px] text-[#FF9933]">({DEFAULT_OFFICER.officer_id})</span>
-          </div>
-        </div>
-
-        {/* Right: Engine Telemetry & Ledger Switcher */}
+        {/* Right: Ledger Switcher */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-[11px] font-mono bg-black/30 px-2.5 py-1 rounded text-white/80">
-            <span className="w-2 h-2 rounded-full bg-[#138808] animate-pulse" />
-            <span>ENGINE: LOCAL 5001</span>
-          </div>
-
           {currentStep === 'audit_history' ? (
             <button
               onClick={() => setCurrentStep('document')}
