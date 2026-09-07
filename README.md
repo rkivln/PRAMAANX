@@ -1996,3 +1996,18 @@ into a unified, privacy-conscious screening workflow. Sensitive documents and fa
 ## Disclaimer
 
 PRAMAANX is a prototype/decision-support system intended for demonstration and controlled evaluation. Model outputs, risk scores, and automated checks should not be treated as infallible proof of identity or fraud. Production deployment requires domain validation, security assessment, privacy/legal review, operational testing, model evaluation, and authorization from the relevant institution.
+
+## License and Copyright
+
+Copyright (c) 2026 [Your Name]. All rights reserved.
+
+This repository and all of its contents are proprietary and confidential. 
+
+By viewing this public repository, you are granted only the standard rights provided by the GitHub Terms of Service (such as the right to view, fork, and clone the repository within the GitHub platform for personal viewing purposes). 
+
+You are strictly prohibited from:
+* Copying, modifying, or distributing this code outside of GitHub.
+* Using this code, or any portion of it, in your own personal or commercial projects.
+* Sublicensing or selling this software.
+
+For permissions beyond personal viewing, please contact the author.
