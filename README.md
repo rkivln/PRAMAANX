@@ -1,4 +1,5 @@
 # PRAMAANX
+"Copyright (c) 2026 rkivln. All rights reserved. This repository and its contents are proprietary. No one may copy, distribute, modify, or use this code without explicit permission."
 ## AI-Based Fake Identity & Document Screening System
 
 > **PRAMAANX** is a local-first, privacy-conscious identity and document screening platform designed for controlled verification environments such as border checkpoints. It combines document capture, OCR/MRZ extraction, face processing, liveness analysis, rule-based/risk screening, officer review, and tamper-evident audit records into a single screening workflow.
