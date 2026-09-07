@@ -10,7 +10,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: false // allow local camera and engine communication
+      webSecurity: false
     },
     title: 'PRAMAANX — Identity & Document Screening System',
     autoHideMenuBar: true,

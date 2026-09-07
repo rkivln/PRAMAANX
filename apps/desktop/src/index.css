@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --navy-dark:    #0B2942;
+  --navy:         #123B63;
+  --navy-mid:     #1E5A8A;
+  --navy-light:   #2E6FA0;
+  --saffron:      #FF9933;
+  --green:        #138808;
+  --green-pale:   #E6F4E6;
+  --white:        #FFFFFF;
+  --bg-page:      #F3F5F7;
+  --bg-card:      #FFFFFF;
+  --border:       #D6DCE2;
+  --border-light: #E8ECF0;
+  --text-primary: #17212B;
+  --text-sec:     #5B6773;
+  --text-muted:   #7A858F;
+  --verified:     #138808;
+  --review:       #C47A00;
+  --review-pale:  #FFF3D6;
+  --rejected:     #B42318;
+  --rejected-pale:#FDECEA;
+
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+}
+
+.font-mono {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F1F3F5;
+}
+::-webkit-scrollbar-thumb {
+  background: #C4CBD3;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A6B0BA;
+}
+
+/* Radar Scan animation */
+@keyframes radar-sweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-radar {
+  animation: radar-sweep 2.5s linear infinite;
+  transform-origin: center center;
+}
+
+/* Document Reticle corners */
+.corner-bracket {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-color: #FF9933;
+  pointer-events: none;
+}
+.corner-tl { top: -2px; left: -2px; border-top-width: 3px; border-left-width: 3px; }
+.corner-tr { top: -2px; right: -2px; border-top-width: 3px; border-right-width: 3px; }
+.corner-bl { bottom: -2px; left: -2px; border-bottom-width: 3px; border-left-width: 3px; }
+.corner-br { bottom: -2px; right: -2px; border-bottom-width: 3px; border-right-width: 3px; }
+
+/* Pulse Glow */
+@keyframes border-pulse {
+  0%, 100% { border-color: rgba(255, 153, 51, 0.4); }
+  50% { border-color: rgba(255, 153, 51, 0.9); }
+}
+.pulse-guide {
+  animation: border-pulse 2s infinite ease-in-out;
+}

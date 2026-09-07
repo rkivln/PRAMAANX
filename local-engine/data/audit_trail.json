@@ -1,0 +1,41 @@
+[
+  {
+    "verification_id": "VR-20260907-A6EC41",
+    "timestamp": "2026-09-07T08:55:49.092913+00:00",
+    "officer": {
+      "officer_id": "OFFICER-01",
+      "name": "Screening Officer",
+      "rank": "Officer",
+      "checkpoint_code": "CHK-01"
+    },
+    "hashes": {
+      "document_sha256": "6c622406b5a2dcc83481a7d9231b206d09a28ca164f2a38f4716f275318f3070",
+      "face_sha256": "50217c7f8f7c88c086b126a5ea4b4e3bacbb6ead32002429f96b8e5f8967c6e9"
+    },
+    "document": {
+      "type": "Aadhaar Card",
+      "document_number": "9219 1578 8367",
+      "name": "AGokulan",
+      "mrz_valid": false,
+      "ocr_confidence": 74.0
+    },
+    "biometrics": {
+      "face_match_status": "MATCH",
+      "similarity_score": 94.7,
+      "liveness_status": "FAIL"
+    },
+    "forensics": {
+      "ela_score": 95.8,
+      "tamper_status": "CLEAN",
+      "metadata_status": "PASS"
+    },
+    "risk_assessment": {
+      "score": 23.4,
+      "level": "MEDIUM",
+      "recommendation": "REVIEW",
+      "reasons": [
+        "Biometric liveness check failed: possible screen presentation or print replay attack"
+      ]
+    }
+  }
+]
