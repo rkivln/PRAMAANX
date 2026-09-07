@@ -421,89 +421,103 @@ The MVP does **not** require a blockchain or distributed ledger.
 
 # 6. Complete System Architecture
 
+PRAMAANX employs an edge-hybrid, multi-tiered monorepo architecture engineered for high throughput, local offline resilience, strict privacy preservation, and centralized enterprise governance.
+
 ```text
-                         PRAMAANX
-                LOCAL-FIRST SCREENING PLATFORM
-┌──────────────────────────────────────────────────────────────┐
-│                    BORDER CHECKPOINT                         │
-│                                                              │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │                  PRAMAANX.EXE                          │  │
-│  │                                                        │  │
-│  │  React UI                                             │  │
-│  │      │                                                 │  │
-│  │      ├── Camera Capture                                │  │
-│  │      ├── Document Preprocessing                        │  │
-│  │      ├── Local OCR                                     │  │
-│  │      ├── MRZ Parser / Validator                        │  │
-│  │      ├── Face Detection                                │  │
-│  │      ├── Face Embedding / Verification                 │  │
-│  │      ├── Liveness                                      │  │
-│  │      ├── Risk Engine                                   │  │
-│  │      └── Officer Review                                │  │
-│  │                                                        │  │
-│  │               Local Processing                         │  │
-│  └─────────────────────────┬──────────────────────────────┘  │
-│                            │                                 │
-│                   Authorized Result                          │
-└────────────────────────────┼─────────────────────────────────┘
-                             │
-                       Secure API / VPN
-                             │
-                             ▼
-┌──────────────────────────────────────────────────────────────┐
-│                   CENTRAL SECURE SERVER                      │
-│                                                              │
-│  Authentication & RBAC                                      │
-│  Central PostgreSQL                                          │
-│  Screening History                                           │
-│  Central Audit Trail                                         │
-│  Reporting                                                   │
-│  Configuration / Rules                                       │
-│  Model / Version Management                                  │
-│  Authorized Government Integrations                          │
-│                                                              │
-└──────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                       PRAMAANX WORKSTATION / CHECKPOINT                                │
+│                                                                                                        │
+│  ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐  │
+│  │                              DESKTOP CLIENT SHELL (apps/desktop)                                 │  │
+│  │   • React 19 + TypeScript + Vite + Tailwind CSS                                                 │  │
+│  │   • Dual Runtime Packaging: Electron 28 & Tauri v2 (Rust Native)                                │  │
+│  │   • Hardware Camera Feeds & Document Preprocessing Capture UI                                    │  │
+│  │   • Real-Time Risk Visualizations, Decision Logging & Report Exporter UI                         │  │
+│  └──────────────────┬─────────────────────────────────────────────────────────────┬─────────────────┘  │
+│                     │                                                             │                    │
+│     High-Speed HTTP │ Local Loopback (:5001)                      JWT-Secured API │ HTTP (:5000)       │
+│     (Offline-Ready) │                                             (Central/Edge)  │                    │
+│                     ▼                                                             ▼                    │
+│  ┌──────────────────────────────────────────────────┐  ┌────────────────────────────────────────────┐  │
+│  │    LOCAL AI & FORENSIC ENGINE (local-engine)     │  │        CORE BACKEND API (services/api)     │  │
+│  │  FastAPI (Port 5001)                             │  │  FastAPI (Port 5000)                       │  │
+│  │  ──────────────────────────────────────────────  │  │  ───────────────────────────────────────── │  │
+│  │  • Document OCR: PaddleOCR + Preprocessing       │  │  • Officer Auth & JWT RBAC (Officer/Admin) │  │
+│  │  • MRZ Validator: ICAO 9303 Checksum Engine      │  │  • Checkpoint & Workstation Management     │  │
+│  │  • Biometric Face: InsightFace / ArcFace Cosine  │  │  • Verification Session State Machine      │  │
+│  │  • Presentation Attack: Passive Liveness Model   │  │  • Cryptographic Hash Chain Audit Verifier │  │
+│  │  • Forensics: ELA, OpenCV Tamper, PyTorch Neural │  │  • Verification History & Review Queues    │  │
+│  │  • Risk Engine: XGBoost + Deterministic Rules    │  │  • Edge Inference Coordination             │  │
+│  │  • Multi-Format Reports: PDF, XLSX, DOCX, CSV    │  └──────────────────────┬─────────────────────┘  │
+│  │  • Local Digital Audit: SHA-256 JSON Hash Chain  │                         │                        │
+│  └──────────────────┬───────────────────────────────┘                         │                        │
+└─────────────────────┼─────────────────────────────────────────────────────────┼────────────────────────┘
+                      │                                                         │
+       Direct Audit   │ Supabase Sync                             Managed Sync  │ Remote DB Access
+       Sync (Optional)│                                                         │
+                      ▼                                                         ▼
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                       CENTRAL CLOUD & ADVISORY TIER                                    │
+│                                                                                                        │
+│  ┌──────────────────────────────────────────────────┐  ┌────────────────────────────────────────────┐  │
+│  │      AI ADVISORY SERVICE (services/ai-service)   │  │    CLOUD DATABASE & LEDGER (supabase)      │  │
+│  │  Node.js + Express + TypeScript (Port 3001)      │  │  PostgreSQL with Row Level Security (RLS)  │  │
+│  │  ──────────────────────────────────────────────  │  │  ───────────────────────────────────────── │  │
+│  │  • Google Gemini Pro Multi-Factor Reasoning      │  │  • Verification Sessions & Captures        │  │
+│  │  • Sanitized Non-PII Metadata Consumption Only   │  │  • Biometric Scores & Forensic Signals     │  │
+│  │  • Secondary Officer Advisory & Observations     │  │  • Verification Decisions & Review Logs    │  │
+│  │  • Zero Raw Biometric/Document Exposure to LLMs  │  │  • Tamper-Evident SHA-256 Chained Audit Log│  │
+│  └──────────────────────────────────────────────────┘  └────────────────────────────────────────────┘  │
+│                                                                                                        │
+│  ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐  │
+│  │                               SHARED CONTRACTS (packages/contracts)                              │  │
+│  │   • JSON Schemas (verification.schema.json) & TypeScript Definitions (types/index.ts)            │  │
+│  └──────────────────────────────────────────────────────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-# 7. Why Not Put Everything Inside Electron?
+# 7. Modern Separation of Concerns & Edge-Hybrid Architecture
 
-PRAMAANX uses a hybrid local-first architecture instead of putting every responsibility into the desktop executable.
+Rather than monolithic desktop software, PRAMAANX partitions responsibilities across decoupled microservices and application layers:
 
-## Electron / Desktop application
+## 7.1 Desktop Client Shell (`apps/desktop`)
+- **React 19 Frontend**: High-responsiveness, stateful screening cockpit and verification workflow.
+- **Dual Runtime Deployment**:
+  - **Electron (28+)**: Universal cross-platform desktop shell with deep camera and local hardware driver bindings.
+  - **Tauri v2 (Rust)**: Extremely lightweight (~15MB), low-memory, zero-overhead alternative runtime.
+- **Secure Hardware Access**: Camera capture, preview, live visual framing, and multi-document ingestion.
+- **Client-Side Storage**: Ephemeral session caching and secure credential retention.
 
-The local application is responsible for:
+## 7.2 Local AI & Forensic Engine (`local-engine` - Port 5001)
+- **Zero-Cloud Dependency**: Runs 100% on the local workstation for mission-critical offline border resilience.
+- **Document Intelligence**: PaddleOCR text extraction and full ICAO Doc 9303 MRZ parsing with checksum validations.
+- **Biometric Pipeline**: InsightFace ArcFace 512-d embeddings, cosine face similarity matching, and passive anti-spoofing liveness verification.
+- **Multi-Factor Forensics**:
+  - **Error Level Analysis (ELA)**: Re-compression difference analysis detecting cloned document regions.
+  - **Tampering Analysis**: OpenCV Laplacian edge variance and contour frequency anomaly inspection.
+  - **Deep Neural Noise Detection**: PyTorch NoiseNet examining high-frequency sensor noise inconsistencies.
+  - **PDF / Image Metadata**: Exif and structural metadata inspection for image manipulation software traces.
+- **Risk Assessment**: XGBoost composite scoring combined with border compliance rules.
+- **Multi-Format Reporting Engine**: Generates official inspection dossiers and audit manifests in PDF, Excel (XLSX), Word (DOCX), and CSV.
+- **Local Tamper-Evident Audit**: SHA-256 chained local JSON audit store with optional direct Supabase digital audit sync.
 
-- React UI
-- Camera access
-- OCR
-- Face detection
-- Face verification
-- Liveness
-- Image preprocessing
-- Local risk computation
-- Offline/basic screening
-- Local audit generation
+## 7.3 Core Central Backend (`services/api` - Port 5000)
+- **Python FastAPI Service**: High-concurrency async API orchestrating institutional security workflows.
+- **Authentication & RBAC**: JWT authorization supporting granular roles (`officer`, `supervisor`, `admin`).
+- **State Machine Engine**: Enforces strict verification lifecycles from session creation to final officer approval.
+- **Cryptographic Audit Integrity**: Validates the SHA-256 hash chains across historical screening logs.
+- **Supervisory Review Queue**: Routes flagged screenings to senior immigration supervisors for review.
 
-## Central server
+## 7.4 AI Advisory Microservice (`services/ai-service` - Port 3001)
+- **Node.js + Express**: Specialized LLM microservice consuming Google Gemini Pro.
+- **Privacy-Preserving Advisory**: Sends strictly non-PII derived technical signals (confidence percentages, ELA discrepancy scores, liveness metrics) to generate explanatory natural-language insights for the officer.
+- **Non-Decisional Policy**: AI opinions serve as advisory assistance only—never as automated border decisions.
 
-The central server is responsible for:
-
-- Officer authentication
-- Role and permissions
-- Screening history
-- Central audit trail
-- Central identity/reference database
-- Configuration
-- Rules
-- Model/version management
-- Cross-checking between checkpoints
-- Authorized government integrations
-- Central reporting
-
-This separation provides a clear security and operational boundary.
+## 7.5 Cloud Database & Audit Ledger (`supabase`)
+- **PostgreSQL Database**: Scalable cloud relational storage fortified with Row Level Security (RLS).
+- **Audit Hash Chaining**: Every screening event links its cryptographic hash to the prior record, producing an immutable digital ledger.
 
 ---
 
@@ -592,176 +606,98 @@ Clients can then receive approved updates through a controlled synchronization m
 
 # 10. Technology Stack
 
-## 10.1 Desktop Application
+PRAMAANX is organized as an enterprise monorepo combining edge Python intelligence, modern web UI, dual-target desktop packaging, and cloud ledger persistence:
 
-### Electron
+## 10.1 Desktop Application (`apps/desktop`)
+- **UI Framework**: React 19 + TypeScript + Vite
+- **Styling**: Tailwind CSS + Lucide React icon suite
+- **Packaging Option 1 (Standard)**: Electron 28 with `electron-builder`
+- **Packaging Option 2 (High Efficiency)**: Tauri v2 (Rust-powered native runtime, ~15MB memory footprint)
+- **Device & Media**: WebRTC camera stream capture, canvas frame extraction, and real-time guidance overlays
 
-Electron packages the PRAMAANX desktop screening application into a distributable executable.
+## 10.2 Local AI & Forensic Engine (`local-engine`)
+- **Runtime**: Python 3.11+ / FastAPI / Uvicorn (Port 5001)
+- **Computer Vision**: OpenCV (`opencv-python-headless`), Pillow (`PIL`)
+- **OCR Engine**: PaddleOCR / Tesseract with multilingual model weights
+- **Biometric Pipeline**: InsightFace (ArcFace 512-dimensional embeddings, SCRFD alignment)
+- **Deep Learning**: PyTorch (`torch`, `torchvision`) for neural noise feature extraction
+- **PDF & Metadata**: PyMuPDF (`fitz`) and ExifTool metadata parsing
+- **Reporting Engine**: ReportLab (PDF), OpenPyXL (Excel), python-docx (Word), standard CSV
 
-Responsibilities:
+## 10.3 Core Central Backend (`services/api`)
+- **Runtime**: Python 3.11+ / FastAPI / Uvicorn (Port 5000)
+- **Validation**: Pydantic v2 schemas
+- **Auth**: Enterprise JWT with password hashing and Role-Based Access Control (RBAC)
+- **Database Integration**: Supabase Python Client (`supabase-py`) connecting to managed PostgreSQL
+- **Integrity Verifier**: SHA-256 cryptographic chain validator traversing audit logs
 
-- Desktop application shell
-- Native camera/device access
-- Local filesystem access where required
-- Secure communication with local processing services
-- Packaging and deployment
+## 10.4 AI Advisory Service (`services/ai-service`)
+- **Runtime**: Node.js 20+ / Express / TypeScript (Port 3001)
+- **Security**: Helmet, CORS, Morgan request logging
+- **LLM Engine**: Google Generative AI (`@google/generative-ai` - Gemini Pro)
+- **Boundary**: Zero PII / zero image ingestion; structured technical metadata analysis only
 
-Example:
+## 10.5 Cloud Database & Audit Ledger (`supabase`)
+- **Database**: PostgreSQL 15+ hosted on Supabase
+- **Access Control**: Row Level Security (RLS) policies scoped by officer assignment and role
+- **Ledger Security**: Cryptographic SHA-256 hash chaining across `audit_logs` records
 
-```text
-PRAMAANX.exe
-```
-
----
-
-## 10.2 Frontend
-
-### React
-
-React provides the officer-facing user interface.
-
-Used for:
-
-- Login
-- Screening dashboard
-- Camera interface
-- Document capture
-- Face capture
-- Processing status
-- Result visualization
-- Officer review
-- Audit information
-
-### HTML / CSS / JavaScript
-
-The web technologies provide the base interface layer.
-
-### UI Design
-
-The interface is designed to be:
-
-- Minimal
-- Professional
-- Fast to understand
-- Suitable for government operational environments
-- Accessible under time-constrained screening conditions
+## 10.6 Contracts & Type Safety (`packages/contracts`)
+- **Shared Schemas**: JSON Schema (`verification.schema.json`)
+- **Shared Types**: Central TypeScript interfaces (`types/index.ts`)
 
 ---
 
-# 11. Local AI / Computer Vision Stack
+# 11. Local AI, Computer Vision & Forensic Stack
 
-## 11.1 OCR
+PRAMAANX executes the complete inspection pipeline locally without streaming raw identity media to cloud endpoints.
 
-A local OCR engine processes captured document images.
+## 11.1 Document Preprocessing & OCR
+Captures are processed locally to maximize optical recognition fidelity:
+1. Document region detection and boundary cropping
+2. Contrast enhancement, adaptive thresholding, and perspective rectification
+3. Text extraction via PaddleOCR
+4. Text normalization and document attribute categorization
 
-Pipeline:
+## 11.2 ICAO 9303 MRZ Processing
+Deterministic validation layer complying with international travel document standards:
+- Supports TD1 (ID cards), TD2, and TD3 (Passport) specifications
+- Extracts issuing state, document number, birth date, sex, expiration date, and personal numbers
+- Calculates and verifies individual check digits and composite check digits
+- Cross-validates MRZ data against visual OCR text fields for discrepancy detection
 
-```text
-Camera
-  ↓
-Image Preprocessing
-  ↓
-Document Region
-  ↓
-OCR
-  ↓
-Text Normalization
-  ↓
-Field Extraction
-```
+## 11.3 Biometric Face Verification
+Performs 1:1 facial biometric comparison between the document portrait and the live subject:
+- SCRFD / landmark detector locates face and aligns eye/nose geometry
+- InsightFace / ArcFace produces 512-dimensional biometric feature embeddings
+- Computes cosine similarity distance against operational border policy thresholds
+- Raw facial embeddings are discarded after session evaluation (Privacy by Design)
 
-OCR can be implemented using an offline-capable OCR engine appropriate for the target deployment.
+## 11.4 Passive Liveness & Anti-Spoofing
+Screens live camera captures for presentation attacks:
+- Evaluates RGB micro-textures, specular highlights, and chromatic aberration
+- Detects screen replay, printed photo attacks, and digital manipulation attempts
+- Produces a deterministic liveness confidence score
 
-Possible implementation:
+## 11.5 Multi-Factor Document Forensics
+A comprehensive four-pillar forensic inspection suite:
+1. **Error Level Analysis (ELA)**: Re-saves image at known compression ratios and evaluates compression error differentials to expose digitally spliced text or swapped portraits.
+2. **OpenCV Tamper Analysis**: Evaluates Laplacian edge variance, blur contours, and high-frequency edge anomalies around security print patterns.
+3. **Deep Neural Noise Detection**: PyTorch NoiseNet extracts high-frequency sensor noise signatures to flag mismatched sensor artifacts.
+4. **Metadata & Exif Inspection**: PyMuPDF inspects file headers, creation timestamps, and software signature tags for editing tools (e.g. Photoshop, GIMP).
 
-- PaddleOCR
-- Tesseract
-- ONNX-compatible OCR models
+## 11.6 Risk Engine (XGBoost + Border Rules)
+Combines all verification signals into an interpretable risk assessment:
+- Multi-factor evaluation: OCR confidence, MRZ validity, face similarity, liveness, and forensic indicators
+- Hybrid decision architecture: Fast deterministic border rules coupled with an XGBoost classifier
+- Produces structured evidence points and risk tiering: `LOW`, `REVIEW`, or `HIGH`
 
-The final implementation should benchmark accuracy and latency using representative passport/document images.
-
----
-
-## 11.2 MRZ Processing
-
-MRZ parsing is implemented as a deterministic processing layer.
-
-```text
-OCR Text
-   ↓
-MRZ Detection
-   ↓
-MRZ Parsing
-   ↓
-Check Digit Validation
-   ↓
-Normalized Identity Fields
-```
-
-The MRZ validator should follow the relevant ICAO machine-readable travel document specifications applicable to the document type being supported.
-
----
-
-## 11.3 Face Detection
-
-A dedicated face detector locates faces in:
-
-- Document portraits
-- Live camera frames
-
-A suitable implementation may use an ONNX-compatible detector such as:
-
-- SCRFD
-- RetinaFace
-- Another validated face detector
-
----
-
-## 11.4 Face Recognition / Verification
-
-The face verification pipeline can use:
-
-```text
-Face Detector
-      ↓
-Face Alignment
-      ↓
-Face Recognition Model
-      ↓
-Embedding
-      ↓
-Cosine Similarity / Distance
-      ↓
-Configured Threshold
-      ↓
-Verification Result
-```
-
-A practical model family for the MVP is:
-
-**InsightFace / ArcFace-compatible recognition models**
-
-The exact model should be selected and validated according to:
-
-- Accuracy
-- CPU/GPU performance
-- Licensing
-- Deployment constraints
-- Representative evaluation data
-
----
-
-## 11.5 Liveness
-
-The liveness component evaluates whether the captured subject appears to be a live person rather than a presentation attack.
-
-Possible implementation approaches include:
-
-- Passive RGB liveness
-- Lightweight anti-spoofing models
-- ONNX-compatible anti-spoofing models
-
-For institutional deployment, the selected model must undergo dedicated presentation-attack testing.
+## 11.7 Multi-Format Report Generation
+Generates complete legal screening dossiers and audit logs on demand:
+- **PDF**: Formal border screening dossiers with header styling, officer details, and evidence checklists via ReportLab
+- **Excel (XLSX)**: Structured multi-tab inspection sheets via OpenPyXL
+- **Word (DOCX)**: Editable institutional case reports via python-docx
+- **CSV**: Lightweight flat records for ingestion into governmental databases
 
 ---
 
@@ -899,111 +835,113 @@ Audit Hash
 
 ---
 
-# 15. Central Server Architecture
+# 15. Central Server & Microservices Architecture
 
-The central system is intended for controlled deployment rather than being a mandatory dependency for every local operation.
+The centralized and cloud infrastructure provides governance, synchronization, audit verification, and advisory capabilities across distributed border stations:
 
 ```text
-                    CENTRAL SERVER
-┌─────────────────────────────────────────────┐
-│ API Gateway / Backend                       │
-├─────────────────────────────────────────────┤
-│ Authentication                              │
-│ RBAC                                        │
-│ Screening Service                           │
-│ Audit Service                               │
-│ Configuration Service                       │
-│ Model/Version Service                       │
-│ Synchronization Service                     │
-│ Reporting Service                           │
-└──────────────────┬──────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────┐
-│              PostgreSQL                     │
-│                                             │
-│ Officers                                    │
-│ Roles                                       │
-│ Checkpoints                                 │
-│ Screening Events                            │
-│ Audit Metadata                              │
-│ Configuration                               │
-│ Model Versions                              │
-│ Reference Data                              │
-└─────────────────────────────────────────────┘
+                               ┌───────────────────────────┐
+                               │   DESKTOP SCREENING APP   │
+                               │   (Electron / Tauri)      │
+                               └─────────────┬─────────────┘
+                                             │
+                       ┌─────────────────────┴─────────────────────┐
+                       │                                           │
+         Port 5000     ▼                             Port 3001     ▼
+┌─────────────────────────────────────────┐   ┌─────────────────────────────────────────┐
+│     FASTAPI BACKEND (services/api)      │   │  AI ADVISORY SERVICE (services/ai-srv)  │
+│                                         │   │                                         │
+│ • Authentication & JWT Token RBAC       │   │ • Express.js + Google Generative AI     │
+│ • Verification State Machine Lifecycle  │   │ • Gemini Pro Multi-Factor Reasoning     │
+│ • Session Coordination                  │   │ • Strict Metadata-Only Ingestion        │
+│ • Cryptographic Hash-Chain Verification │   │ • Non-Decisional Structured Insights    │
+│ • Supervisor Escalation & Review Queue  │   └─────────────────────────────────────────┘
+│ • System Telemetry & Admin Statistics   │
+└────────────────────┬────────────────────┘
+                     │
+                     ▼
+┌───────────────────────────────────────────────────────────────────────────────────────┐
+│                           SUPABASE MANAGED POSTGRESQL                                 │
+│                                                                                       │
+│ • officers                 • verification_sessions       • risk_assessments           │
+│ • checkpoints              • document_captures           • ai_opinions                │
+│ • workstations             • document_analysis           • verification_decisions     │
+│ • assignments              • biometric_analysis          • audit_logs (Hash Chained)  │
+│ • verification_checks      • review_actions              • system_events              │
+│                                                                                       │
+│ Enforced by PostgreSQL Row Level Security (RLS) Policies                              │
+└───────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-# 16. Backend Technology
+# 16. Backend & Cloud Technologies
 
-A suitable controlled-deployment backend stack is:
+The institutional layer is implemented with high-concurrency, modern frameworks:
 
-### Node.js
+### 16.1 Python FastAPI (`services/api`)
+- High-performance asynchronous Python runtime with Pydantic v2 data validation
+- Stateless JWT authentication and role-based endpoint authorization
+- Verification session state machine preventing illegal screening stage transitions
+- Cryptographic hash-chain integrity verification traversing historical audit records
 
-Used as the server-side JavaScript/TypeScript runtime.
+### 16.2 Node.js & Express (`services/ai-service`)
+- Lightweight microservice interfacing with Google Gemini Pro
+- Computes multi-factor qualitative observations from numeric scores without raw document images
+- Hardened with Helmet, strict CORS, and structured payload sanitization
 
-### Express.js
-
-Used to build REST APIs and backend services.
-
-### PostgreSQL
-
-Used as the central relational database.
-
-Potential entities include:
-
-```text
-Officer
-Role
-Checkpoint
-ScreeningSession
-ScreeningResult
-AuditRecord
-Configuration
-RuleVersion
-ModelVersion
-ReferenceRecord
-SyncEvent
-```
+### 16.3 Supabase PostgreSQL
+- Fully relational database with schemas, foreign keys, and indexes on frequent lookup fields
+- **Row Level Security (RLS)** ensuring officers can only access their assigned checkpoint data, while supervisors and admins access broader audit records
+- Cryptographic SHA-256 chain links (`previous_hash` → `current_hash`) preventing undetected audit tampering
 
 ---
 
 # 17. API Architecture
 
-Example API structure:
+The system exposes structured REST APIs across its microservice ecosystem:
 
-```text
-/api/v1/auth
-/api/v1/officers
-/api/v1/checkpoints
-/api/v1/screenings
-/api/v1/audits
-/api/v1/config
-/api/v1/models
-/api/v1/reference
-/api/v1/sync
-/api/v1/reports
-```
+### 17.1 Core Backend API (`services/api` - Port 5000)
 
-Example flow:
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/api/auth/login` | Public | Officer ID authentication & JWT issuance |
+| `POST` | `/api/auth/logout` | Authenticated | Revokes current officer session |
+| `GET` | `/api/auth/me` | Authenticated | Current officer profile and permissions |
+| `GET` | `/api/checkpoints` | Authenticated | List authorized screening checkpoints |
+| `POST` | `/api/checkpoints/select` | Authenticated | Select and activate current checkpoint |
+| `POST` | `/api/verifications` | Officer | Initialize new verification session |
+| `POST` | `/api/verifications/{id}/document` | Officer | Ingest document capture metadata |
+| `POST` | `/api/verifications/{id}/document/analyze` | Officer | Trigger document OCR & validation |
+| `POST` | `/api/verifications/{id}/biometric/analyze`| Officer | Trigger face match & liveness analysis |
+| `POST` | `/api/verifications/{id}/risk` | Officer | Calculate composite risk assessment |
+| `GET` | `/api/verifications/{id}/result` | Officer | Retrieve complete verification bundle |
+| `POST` | `/api/verifications/{id}/decision` | Officer | Record screening decision (`APPROVE`/`REVIEW`/`REJECT`) |
+| `GET` | `/api/history` | Officer+ | Filter and paginate historical verifications |
+| `GET` | `/api/reviews/pending` | Supervisor | Retrieve flagged cases requiring supervisor review |
+| `GET` | `/api/audit` | Auditor / Admin | Query tamper-evident audit trail |
+| `GET` | `/api/audit/integrity` | Admin | Validate SHA-256 hash-chain integrity |
+| `GET` | `/api/admin/stats` | Admin | Aggregate checkpoint throughput and risk metrics |
+| `GET` | `/api/system/status` | Authenticated | System component health & connectivity |
+| `GET` | `/api/health` | Public | API liveness probe |
 
-```text
-PRAMAANX.EXE
-      │
-      │ HTTPS / Secure Network
-      ▼
-Backend API
-      │
-      ├── Authentication
-      ├── Authorization
-      ├── Screening Event
-      ├── Audit
-      └── Synchronization
-               │
-               ▼
-           PostgreSQL
-```
+### 17.2 Local AI Engine API (`local-engine` - Port 5001)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/verify/full` | Complete offline screening (OCR + MRZ + Face + Liveness + Forensics + Risk + Audit) |
+| `GET` | `/api/audit/records` | Retrieve historical offline audit records |
+| `POST` | `/api/decision` | Log officer approval/rejection locally |
+| `POST` | `/api/report/individual/export` | Generate legal dossier (`format=pdf\|excel\|word\|csv`) |
+| `GET` | `/api/report/individual/{id}` | Export past screening case by ID |
+| `GET` | `/health` | Engine status, model list, and offline readiness probe |
+
+### 17.3 AI Advisory API (`services/ai-service` - Port 3001)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/analysis/analyze` | Evaluates technical verification signals via Gemini Pro and returns structured advisory opinion |
+| `GET` | `/health` | Service health probe |
 
 ---
 
@@ -1199,139 +1137,163 @@ Government database access should only be implemented through officially authori
 
 ---
 
-# 24. Repository Structure
+# 24. Monorepo Structure
 
-A recommended repository structure:
+The PRAMAANX repository is structured as a unified monorepo with segregated application packages, core services, edge inference engines, and shared contracts:
 
 ```text
 PRAMAANX/
+├── apps/
+│   └── desktop/                       # Desktop screening application
+│       ├── electron/                  # Electron main & preload scripts
+│       │   ├── main.cjs               # Main process window management
+│       │   └── preload.cjs            # IPC isolation & bridge
+│       ├── src-tauri/                 # Tauri v2 Rust native wrapper
+│       │   ├── Cargo.toml             # Rust dependencies
+│       │   └── src/main.rs            # Native application entrypoint
+│       ├── src/                       # React 19 UI source
+│       │   ├── components/            # Capture, processing, and result components
+│       │   │   ├── StepDocumentCapture.tsx
+│       │   │   ├── StepFaceCapture.tsx
+│       │   │   ├── StepProcessing.tsx
+│       │   │   ├── StepResult.tsx
+│       │   │   └── AuditTrailView.tsx
+│       │   ├── services/api/          # API client implementations
+│       │   └── types/                 # Frontend TypeScript interfaces
+│       ├── package.json               # Desktop dependencies & build scripts
+│       ├── vite.config.ts             # Vite bundler configuration
+│       └── tailwind.config.js         # Tailwind styling configuration
 │
-├── desktop/
-│   ├── electron/
-│   │   ├── main/
-│   │   ├── preload/
-│   │   └── ipc/
+├── local-engine/                      # Offline-capable Python AI & Forensic Engine (Port 5001)
+│   ├── audit/                         # Local & Supabase audit persistence
+│   │   └── supabase_audit.py          # SHA-256 digital audit logger
+│   ├── biometric/                     # Facial analysis & liveness pipeline
+│   │   ├── face.py                    # InsightFace ArcFace embedding & cosine similarity
+│   │   └── liveness.py                # Passive presentation-attack detection
+│   ├── document/                      # Document extraction & validation
+│   │   ├── ocr.py                     # PaddleOCR document extraction
+│   │   ├── mrz.py                     # ICAO 9303 MRZ parsing & checksum checks
+│   │   └── rules.py                   # Document validity rule evaluations
+│   ├── forensic/                      # Multi-factor forensic inspection
+│   │   ├── ela.py                     # Error Level Analysis (Pillow)
+│   │   ├── tamper.py                  # OpenCV Laplacian & contour anomaly inspection
+│   │   ├── model.py                   # PyTorch NoiseNet neural noise extraction
+│   │   └── metadata.py                # PyMuPDF & Exif file header forensics
+│   ├── report/                        # Multi-format report generation
+│   │   └── generator.py               # PDF, Excel, Word, and CSV exporters
+│   ├── risk/                          # Composite risk evaluation
+│   │   └── engine.py                  # XGBoost classifier + Border policy rules
+│   ├── server.py                      # FastAPI edge engine entrypoint
+│   ├── requirements.txt               # Python ML / CV dependencies
+│   └── Dockerfile                     # Containerization specification
+│
+├── services/
+│   ├── api/                           # Core Central Backend API (Port 5000)
+│   │   ├── app/
+│   │   │   ├── api/                   # REST routers (auth, checkpoints, verifications, audit)
+│   │   │   ├── edge/                  # Edge inference coordination modules
+│   │   │   ├── models/                # Domain models
+│   │   │   ├── repositories/          # Database access repositories
+│   │   │   ├── schemas/               # Pydantic validation schemas
+│   │   │   ├── services/              # Session state machine, integrity verifier, risk
+│   │   │   ├── utils/                 # Seed data and migration runners
+│   │   │   ├── config.py              # Environment configuration
+│   │   │   └── main.py                # FastAPI central application entrypoint
+│   │   ├── tests/                     # Pytest automated test suites
+│   │   ├── requirements.txt           # Backend dependencies
+│   │   └── Dockerfile
 │   │
-│   └── renderer/
+│   └── ai-service/                    # Secondary AI Advisory Service (Port 3001)
 │       ├── src/
-│       │   ├── components/
-│       │   ├── pages/
-│       │   ├── services/
-│       │   ├── hooks/
-│       │   └── utils/
-│       └── public/
+│       │   ├── routes/                # Express analysis routes
+│       │   │   └── analysis.ts        # Gemini Pro advisory generation
+│       │   └── server.ts              # Express application entrypoint
+│       ├── package.json
+│       ├── tsconfig.json
+│       └── Dockerfile
 │
-├── local-ai/
-│   ├── ocr/
-│   ├── mrz/
-│   ├── face/
-│   ├── liveness/
-│   ├── preprocessing/
-│   └── risk-engine/
+├── packages/
+│   └── contracts/                     # Cross-service shared contracts
+│       ├── schemas/                   # verification.schema.json (JSON Schema)
+│       └── types/                     # TypeScript shared type declarations (index.ts)
 │
-├── backend/
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── routes/
-│   │   ├── services/
-│   │   ├── middleware/
-│   │   ├── models/
-│   │   └── utils/
-│   └── tests/
+├── supabase/
+│   └── migrations/                    # PostgreSQL migrations, RLS policies, hash triggers
 │
-├── database/
-│   ├── migrations/
-│   ├── schema/
-│   └── seeds/
+├── docs/                              # Formal system documentation
+│   ├── api.md                         # Complete REST API reference
+│   ├── architecture.md                # System architecture summary
+│   ├── database.md                    # PostgreSQL schema and RLS policies
+│   ├── deployment.md                  # Development and production deployment guide
+│   └── security.md                    # Threat model & cryptographic audit design
 │
-├── models/
-│   ├── ocr/
-│   ├── face/
-│   └── liveness/
-│
-├── docs/
-│   ├── architecture/
-│   ├── api/
-│   ├── security/
-│   └── deployment/
-│
-├── tests/
-│   ├── unit/
-│   ├── integration/
-│   └── e2e/
-│
-├── scripts/
-│
-├── .env.example
-├── package.json
-└── README.md
+├── docker-compose.yml                 # Multi-service container orchestration
+├── package.json                       # Root monorepo workspace configuration
+└── README.md                          # Main project architecture & documentation
 ```
 
 ---
 
-# 25. Recommended MVP Technology Stack
+# 25. Implemented Technology Stack
 
-| Layer | Technology |
-|---|---|
-| Desktop Shell | Electron |
-| Frontend | React |
-| Language | JavaScript / TypeScript |
-| Styling | CSS / Tailwind CSS or equivalent |
-| Camera | Browser/Web APIs + Electron integration |
-| OCR | PaddleOCR / Tesseract / equivalent |
-| MRZ | Custom parser + validation logic |
-| Face Detection | SCRFD / equivalent |
-| Face Recognition | InsightFace / ArcFace-compatible model |
-| Liveness | Local anti-spoofing model |
-| AI Runtime | ONNX Runtime where appropriate |
-| Image Processing | OpenCV |
-| Local Processing | Python service and/or native/Node integration |
-| Backend | Node.js |
-| API | Express.js |
-| Database | PostgreSQL |
-| Authentication | JWT/session-based enterprise authentication |
-| Secure Transport | HTTPS/TLS |
-| Network | Secure API / VPN |
-| Audit | Cryptographic hashing |
-| Packaging | Electron Builder |
-| Version Control | Git |
-| Repository | GitHub |
-| Testing | Jest / Vitest + integration/E2E tooling |
-
-The exact model/runtime combination should be finalized after benchmarking the target hardware.
+| Layer | Implemented Technology | Purpose / Highlights |
+|---|---|---|
+| **Desktop Shell** | Electron 28 + Tauri v2 (Rust) | Dual runtime flexibility: standard cross-platform desktop shell or ultra-compact native binary |
+| **Frontend Framework** | React 19 + TypeScript + Vite | Component-driven UI, real-time camera processing, modular screening steps |
+| **Styling** | Tailwind CSS + Lucide Icons | Responsive, government-grade dark/light visual design |
+| **Local AI Engine** | Python 3.11+ / FastAPI (Port 5001) | Low-latency local processing server running completely offline at the checkpoint |
+| **Document OCR** | PaddleOCR + OpenCV | Multilingual OCR with document boundary perspective correction |
+| **MRZ Parser** | ICAO 9303 Compliant Engine | Parsing & check-digit verification for Passports (TD3) and ID Cards (TD1/TD2) |
+| **Biometric Matching** | InsightFace (ArcFace 512-d) | High-accuracy facial embeddings, cosine similarity calculation |
+| **Liveness Detection** | Passive RGB Anti-Spoofing | Evaluates texture, frequency, and screen reflection patterns |
+| **Forensics: ELA** | Pillow (`PIL`) | Error Level Analysis detecting digital retouching and photo splicing |
+| **Forensics: Tamper** | OpenCV (`cv2`) | Laplacian variance, edge distortion, and copy-move detection |
+| **Forensics: Neural** | PyTorch (`torch`, `torchvision`) | Neural sensor noise pattern analysis via deep convolution |
+| **Forensics: Metadata** | PyMuPDF (`fitz`) | Parsing structural PDF/Exif headers and editing tool footprints |
+| **Dossier Exporters** | ReportLab, OpenPyXL, docx | Multi-format legal dossier export: PDF, Excel (XLSX), Word (DOCX), and CSV |
+| **Risk Classifier** | XGBoost + Deterministic Rules | Machine-learning weighted risk scores combined with border policy rules |
+| **Central Backend** | Python 3.11+ / FastAPI (Port 5000) | State machine orchestration, JWT auth, checkpoint administration |
+| **Central Database** | Supabase PostgreSQL 15+ | Relational persistence with Row Level Security (RLS) enforcement |
+| **Cryptographic Audit** | SHA-256 Hash Chaining | Tamper-evident ledger linking sequential audit logs via cryptographic hashes |
+| **AI Advisory Service** | Node.js 20+ / Express (Port 3001) | Non-decisional LLM opinions using Google Gemini Pro over metadata |
+| **Shared Contracts** | JSON Schema + TypeScript | Monorepo schema validation across desktop, backend, and edge services |
+| **Orchestration** | Docker & Docker Compose | Containerized reproducible execution of api, ai-service, and local-engine |
 
 ---
 
-# 26. Local AI Service Architecture
+# 26. Microservices & Edge Inference Architecture
 
-For heavier computer-vision workloads, PRAMAANX can separate the UI process from the AI processing process.
+The PRAMAANX system coordinates multiple lightweight local and central services to balance offline autonomy with enterprise visibility:
 
 ```text
-┌───────────────────────────────┐
-│        Electron + React       │
-│                               │
-│ Officer Interface             │
-│ Camera                        │
-│ Results                       │
-└───────────────┬───────────────┘
-                │
-          Local IPC / API
-                │
-                ▼
-┌───────────────────────────────┐
-│       Local AI Service        │
-│                               │
-│ OpenCV                        │
-│ OCR                           │
-│ MRZ                           │
-│ Face Detection                │
-│ Face Recognition              │
-│ Liveness                      │
-│ Risk Engine                   │
-└───────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                   CLIENT INTERACTION FLOW                                        │
+│                                                                                                  │
+│   1. Login & Checkpoint Activation       2. Create Session        3. Stream Captures             │
+│   Desktop ─────────► services/api (5000) ────────────────► Desktop ─────────► local-engine (5001)│
+│                                                                                     │            │
+│   4. Full Edge Screening Pipeline (Zero Cloud Exposure)                             │            │
+│      ├── OCR & ICAO-9303 MRZ Parsing                                                │            │
+│      ├── InsightFace Biometric ArcFace Match & Liveness                             │            │
+│      ├── Multi-Factor Forensics (ELA, Tamper, Neural, Metadata)                     │            │
+│      ├── XGBoost Composite Risk Calculation                                         │            │
+│      ├── Local SHA-256 Chained Digital Audit Log                                    │            │
+│      └── Export Legal Dossiers (PDF / XLSX / DOCX / CSV)                            │            │
+│                                                                                     ▼            │
+│   5. Sync Authorized Results & Hashes (Metadata Only)                            Desktop         │
+│      Desktop ───────────────────────────────────────────────────────────────► services/api (5000)│
+│                                                                                     │            │
+│   6. Optional Advisory & Cloud Audit Sync                                           ▼            │
+│      services/api (5000) ───► services/ai-service (3001) [Gemini Pro]          Supabase (DB)     │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-This architecture prevents the desktop UI from becoming tightly coupled to every AI implementation.
+### Port Allocation & Service Endpoints
+- **Port 5173**: React Desktop Development Web Server (Vite)
+- **Port 5000**: Core Backend API (`services/api` - FastAPI)
+- **Port 5001**: Local AI & Forensic Engine (`local-engine` - FastAPI, offline loopback)
+- **Port 3001**: AI Advisory Microservice (`services/ai-service` - Express + Gemini Pro)
+- **Port 5432**: Supabase Managed PostgreSQL Database
 
 ---
 
@@ -1785,146 +1747,158 @@ INSTITUTIONAL INTEGRATION
 
 ---
 
-# 39. Quick Start — MVP
+# 39. Quick Start & Execution
 
-> The commands below are a reference architecture. Exact commands may change with the final repository structure.
+The PRAMAANX monorepo can be executed either via Docker Compose or using concurrent local development commands:
 
-## Prerequisites
-
-Recommended development environment:
-
-```text
-Node.js
-npm
-Python
-Git
-OpenCV-compatible environment
-Camera
-Optional NVIDIA GPU for accelerated model inference
-```
+## 39.1 Prerequisites
+- **Node.js**: v20+ and `npm`
+- **Python**: v3.11+ (with virtual environment or Conda)
+- **Git**: Latest release
+- **Docker & Docker Compose** (optional for containerized run)
+- **Webcam / Capture Device**: USB or built-in camera
 
 ---
 
-## Clone
+## 39.2 Option A: Docker Compose (All-in-One)
+
+Launch the core backend API, AI advisory service, and local engine in unified containers:
 
 ```bash
+# Clone the repository
 git clone <repository-url>
 cd PRAMAANX
+
+# Configure environment secrets
+cp .env.example .env
+
+# Build and start services
+docker-compose up --build
+```
+
+Services will be online:
+- **API Backend**: `http://localhost:5000`
+- **Local Engine**: `http://localhost:5001`
+- **AI Advisory**: `http://localhost:3001`
+
+Then launch the desktop client:
+```bash
+npm run dev:desktop
 ```
 
 ---
 
-## Install frontend/desktop dependencies
+## 39.3 Option B: Local Development (Individual Services)
 
+### 1. Install All Dependencies
+From the repository root:
 ```bash
-npm install
+npm run install:all
 ```
+*(Installs root dependencies, API requirements, and AI service dependencies)*
 
----
-
-## Install local AI dependencies
-
+Also install local AI engine dependencies:
 ```bash
-cd local-ai
+cd local-engine
 pip install -r requirements.txt
+cd ..
 ```
 
----
+### 2. Configure Environment
+Populate `.env` with required secrets:
+```bash
+cp .env.example .env
+```
+Ensure `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, and `GEMINI_API_KEY` are defined.
 
-## Configure environment
-
-Create:
-
-```text
-.env
+### 3. Run Database Migrations & Seeds
+```bash
+npm run migrate
+npm run seed
 ```
 
-from:
-
-```text
-.env.example
-```
-
-Never commit real secrets to Git.
-
----
-
-## Run MVP
+### 4. Start Development Services
+Open separate terminal tabs or run via workspace scripts:
 
 ```bash
-npm run dev
+# Terminal 1: Core FastAPI Backend (Port 5000)
+npm run dev:api
+
+# Terminal 2: Local AI & Forensic Engine (Port 5001)
+cd local-engine && python server.py
+
+# Terminal 3: AI Advisory Service (Port 3001)
+npm run dev:ai
+
+# Terminal 4: Desktop Application (Electron + Vite)
+npm run dev:desktop
 ```
 
-The development application should launch the PRAMAANX desktop screening interface.
+*For the lightweight Tauri desktop target:*
+```bash
+cd apps/desktop
+npm run tauri:dev
+```
 
 ---
 
 # 40. MVP Demo Workflow
 
-For the SIH demonstration:
+For inspection demonstrations:
 
 ```text
-1. Officer Login
+1. Officer Login & Checkpoint Selection
        ↓
-2. Start New Screening
+2. Start Verification Session
        ↓
-3. Capture Passport
+3. Document Capture & Frame Alignment
        ↓
-4. OCR Extracts Details
+4. PaddleOCR Extraction & ICAO-9303 MRZ Checksum Validation
        ↓
-5. MRZ Validated
+5. Live Face Capture & Passive Liveness Verification
        ↓
-6. Capture Live Face
+6. InsightFace / ArcFace Cosine Biometric Matching
        ↓
-7. Face Detection
+7. Multi-Factor Forensics (ELA + OpenCV Tamper + PyTorch Neural Noise + Metadata)
        ↓
-8. Liveness Check
+8. XGBoost + Border Rules Composite Risk Assessment
        ↓
-9. Face Verification
+9. Secondary Gemini Pro Advisory Insights (Metadata-only)
        ↓
-10. Risk Engine
+10. Officer Adjudication (APPROVE / REVIEW / REJECT)
        ↓
-11. Officer Result
+11. SHA-256 Tamper-Evident Hash Chain Generation & Supabase Ledger Sync
        ↓
-12. Audit ID + Hash
+12. Multi-Format Dossier Export (PDF / Excel / Word / CSV)
 ```
-
-A clean demo should visibly show the transition between each stage without exposing unnecessary personal information.
 
 ---
 
-# 41. SIH MVP Boundary
+# 41. Current Implementation vs Future Expansions
 
-The **SIH MVP is not the complete institutional system**.
+### Implemented in Current System
 
-### Included in MVP
+- **Desktop Shell (`apps/desktop`)**: High-speed React 19 + TypeScript + Vite UI with dual packaging (Electron 28 & Tauri v2 Rust native).
+- **Local AI Engine (`local-engine`)**: Python FastAPI server (Port 5001) operating completely offline.
+- **Document Intelligence**: PaddleOCR text extraction and ICAO Doc 9303 MRZ parsing with strict check-digit validations.
+- **Biometric Matching**: InsightFace ArcFace 512-dimensional facial embeddings and cosine similarity scoring.
+- **Liveness Detection**: Passive RGB anti-spoofing protecting against presentation attacks.
+- **Multi-Factor Forensics**: Error Level Analysis (ELA), OpenCV Laplacian/contour tampering detection, PyTorch NoiseNet neural noise analysis, and PyMuPDF metadata examination.
+- **Risk Engine**: Hybrid XGBoost machine learning classifier + deterministic border policy rules.
+- **Reporting Engine**: On-demand generation of formal dossiers in PDF, Excel (XLSX), Word (DOCX), and CSV.
+- **Central Backend API (`services/api`)**: Python FastAPI server (Port 5000) with JWT auth, RBAC, checkpoint routing, and session state machine.
+- **Cloud Database & Ledger (`supabase`)**: PostgreSQL relational persistence with Row Level Security (RLS) policies.
+- **Cryptographic Audit Integrity**: Tamper-evident SHA-256 hash chaining across screening events with `/api/audit/integrity` validation.
+- **AI Advisory Service (`services/ai-service`)**: Node.js/Express service (Port 3001) providing privacy-preserving Gemini Pro observations.
+- **Shared Contracts (`packages/contracts`)**: Centralized JSON Schemas and TypeScript contracts.
+- **Containerization**: Complete Docker Compose multi-service deployment.
 
-- Local desktop application
-- Camera capture
-- OCR
-- MRZ processing
-- Face detection
-- Face verification
-- Liveness
-- Risk engine
-- Human-readable reasons
-- Officer review
-- Audit hash
-- Local-first processing
+### Planned Future Enterprise Expansions
 
-### Planned after MVP
-
-- Central PostgreSQL
-- Enterprise authentication
-- Multi-checkpoint synchronization
-- Central screening history
-- Central reporting
-- Admin-controlled model/rule updates
-- Authorized government integrations
-- Secure VPN deployment
-- Advanced forensic models
-
-This distinction is intentional: the MVP demonstrates the core technical feasibility while the later phases define a realistic path toward institutional deployment.
+- **National Border Interconnects**: Direct authorized integration with INTERPOL, NCIC, and national immigration databases.
+- **Hardware Passport Scanner SDKs**: Native device drivers for specialized flatbed passport scanners (ARH Combo Smart, Gemalto/Thales QS2000, 3M).
+- **Hardware Security Modules (HSM)**: Cryptographic root-of-trust key signing for audit chain anchors.
+- **Multi-Spectral Forensics**: Ultraviolet (UV) fluorescence and Infrared (IR) B900 ink analysis for physical security feature verification.
 
 ---
 
@@ -1933,58 +1907,76 @@ This distinction is intentional: the MVP demonstrates the core technical feasibi
 PRAMAANX combines:
 
 ```text
-LOCAL AI
-    +
-DOCUMENT INTELLIGENCE
-    +
-BIOMETRIC VERIFICATION
-    +
-LIVENESS
-    +
-RISK ANALYSIS
-    +
-HUMAN REVIEW
-    +
-AUDITABILITY
-    +
-PRIVACY-FIRST ARCHITECTURE
+OFFLINE-CAPABLE LOCAL ENGINE
+              +
+PADDLEOCR & ICAO-9303 MRZ VALIDATION
+              +
+INSIGHTFACE BIOMETRIC VERIFICATION
+              +
+PASSIVE ANTI-SPOOF LIVENESS
+              +
+FOUR-PILLAR FORENSICS (ELA, TAMPER, NEURAL, METADATA)
+              +
+XGBOOST + RULES COMPOSITE RISK ENGINE
+              +
+MULTI-FORMAT DOSSIER EXPORTS (PDF / XLSX / DOCX / CSV)
+              +
+CRYPTOGRAPHIC SHA-256 TAMPER-EVIDENT AUDIT CHAIN
+              +
+PRIVACY-PRESERVING GEMINI PRO ADVISORY
+              +
+DUAL RUNTIME DESKTOP (ELECTRON & TAURI V2)
 ```
 
-into a unified screening workflow.
-
-The architectural advantage is that **sensitive computation can remain at the checkpoint while centralized infrastructure provides governance, synchronization, configuration, reporting, and authorized integrations.**
+into a unified, privacy-conscious screening workflow. Sensitive documents and facial imagery never leave the screening workstation, while centralized authorities maintain real-time auditability and policy governance.
 
 ---
 
 # 43. Final Architecture Summary
 
 ```text
-                         PRAMAANX
-                           │
-          ┌────────────────┴────────────────┐
-          │                                 │
-          ▼                                 ▼
-   LOCAL SCREENING                    CENTRAL PLATFORM
-     PRAMAANX.EXE                     Controlled Deployment
-          │                                 │
-   ┌──────┼──────┐                  ┌───────┼────────┐
-   │      │      │                  │       │        │
- Camera  OCR   Face              Auth    PostgreSQL Audit
-   │      │      │                  │       │        │
-   │     MRZ  Liveness             RBAC  History  Reporting
-   │      │      │                  │       │        │
-   └──────┼──────┘                  └───────┼────────┘
-          │                                 │
-          ▼                                 │
-      Risk Engine                           │
-          │                                 │
-          ▼                                 │
-     Officer Review                         │
-          │                                 │
-          ▼                                 │
-      Audit Hash                            │
-          │                                 │
-          └──────── Secure Sync ────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                              PRAMAANX BORDER CHECKPOINT                                │
+│                                                                                        │
+│  ┌──────────────────────────────────────────────────────────────────────────────────┐  │
+│  │                     DESKTOP CLIENT UI (apps/desktop)                             │  │
+│  │                     React 19 • Tailwind CSS • Vite                               │  │
+│  │                     Packaged via Electron 28 OR Tauri v2                         │  │
+│  └─────────────────┬──────────────────────────────────────────────┬─────────────────┘  │
+│                    │                                              │                    │
+│     Offline Loopback (:5001)                       Secure Session (:5000)              │
+│                    ▼                                              ▼                    │
+│  ┌──────────────────────────────────┐            ┌──────────────────────────────────┐  │
+│  │   LOCAL AI & FORENSIC ENGINE     │            │        CORE CENTRAL API          │  │
+│  │   FastAPI Service (:5001)        │            │   FastAPI Service (:5000)        │  │
+│  │  ──────────────────────────────  │            │  ──────────────────────────────  │  │
+│  │  • PaddleOCR Document Extraction │            │  • JWT Auth & RBAC               │  │
+│  │  • ICAO 9303 MRZ Checksums       │            │  • Checkpoint Management         │  │
+│  │  • ArcFace Biometric Matching    │            │  • Verification State Machine    │  │
+│  │  • Passive Liveness Detection    │            │  • SHA-256 Audit Integrity Check │  │
+│  │  • Multi-Factor Forensics (ELA,  │            │  • Review & History Queues       │  │
+│  │    Tamper, PyTorch, Metadata)    │            └────────────────┬─────────────────┘  │
+│  │  • XGBoost Risk Scoring Engine   │                             │                    │
+│  │  • PDF / XLSX / DOCX / CSV Export│                             │                    │
+│  │  • Local SHA-256 Chained Audit   │                             │                    │
+│  └──────────────────────────────────┘                             │                    │
+└───────────────────────────────────────────────────────────────────┼────────────────────┘
+                                                                    │
+                                                  Managed Cloud Sync│
+                                                                    ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                             CENTRAL CLOUD PLATFORM                                     │
+│                                                                                        │
+│  ┌──────────────────────────────────┐            ┌──────────────────────────────────┐  │
+│  │      AI ADVISORY MICROSERVICE    │            │    SUPABASE MANAGED POSTGRESQL   │  │
+│  │   Node.js / Express (:3001)      │            │  ──────────────────────────────  │  │
+│  │  ──────────────────────────────  │            │  • Verification Records          │  │
+│  │  • Google Gemini Pro Reasoning   │◄───────────┤  • Biometric / Forensic Scores   │  │
+│  │  • Zero Raw Biometrics / PII     │            │  • Tamper-Evident SHA-256 Chained│  │
+│  │  • Structured Advisory Insights  │            │    Immutable Audit Ledger        │  │
+│  └──────────────────────────────────┘            │  • Enforced by PostgreSQL RLS    │  │
+│                                                  └──────────────────────────────────┘  │
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
